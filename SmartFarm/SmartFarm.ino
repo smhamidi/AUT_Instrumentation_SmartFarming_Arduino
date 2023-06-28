@@ -1,119 +1,147 @@
+// Include the DHT sensor library
 #include <dht.h>
 
+// Create an instance of the DHT sensor
 dht DHT;
 
+// Define the pin connected to the DHT11 sensor
+const int DHT11_signal_pin = 2;
 
-const int DHT11_signal = 2;
+// Define the pins connected to the front ultrasonic sensor
+const int ultraSonic_front_trig_pin = 3;
+const int ultraSonic_front_echo_pin = 4;
 
-const int sr04_1_trig = 3;
-const int sr04_1_echo = 4;
+// Define the pins connected to the left ultrasonic sensor
+const int ultraSonic_left_trig_pin = 5;
+const int ultraSonic_left_echo_pin = 6;
 
-const int sr04_2_trig = 5;
-const int sr04_2_echo = 6;
+// Define the pins connected to the right and left light detectors
+const int lightDetector_right_signal_pin = A0;
+const int lightDetector_left_signal_pin = A3;
 
-const int LDR_1 = A0;
-const int LDR_2 = A3;
+// Define the pin connected to the buzzer
+const int buzzer_pin = 7;
 
-const int Buzzer = 7;
-const int Fan = 11;
+// Define the pin connected to the fan
+const int fan = 11;
+
+// Define the pin connected to the LED
 const int LED = 12;
 
+// Function to read data from the DHT sensor
+int* DHT_function(const int DHT_pin) {
+  // Static array to hold humidity and temperature values
+  static int DHT_sensor_outputput[2];
 
-int* DHT_Function ( const int DHT_pin )
-{
-  static int DHT_output[2];
-  
-  int chk = DHT.read11(DHT_pin);
-  DHT_output[0] = DHT.humidity;
-  DHT_output[1] = DHT.temperature;
-  return DHT_output;
- 
+  // Read humidity and temperature from the DHT sensor
+  DHT_sensor_outputput[0] = DHT.humidity;
+  DHT_sensor_outputput[1] = DHT.temperature;
+
+  // Return the array
+  return DHT_sensor_outputput;
 }
 
-float sr04_Function(int trigPin, int echoPin){
+// Function to read data from the ultrasonic sensor
+float ultra_sonic_function(int trigPin, int echoPin) {
+  // Variables to hold duration and distance values
   static float duration, distance;
+
+  // Send a short pulse to trigger the sensor
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
 
+  // Read the time for the echo
   duration = pulseIn(echoPin, HIGH);
-  distance = (duration*.0343)/2;
+
+  // Calculate the distance
+  distance = (duration * .0343) / 2;
+
+  // Return the distance
   return distance;
 }
 
-int LDR_Function(int LDR_pin)
-{
-  return analogRead(LDR_pin);
-}
+// Function to read data from the light detector
+int LDR_function(int LDR_pin) { return analogRead(LDR_pin); }
 
-void setup(){
-
-  pinMode(sr04_1_trig,OUTPUT);
-  pinMode(sr04_1_echo,INPUT);
-  pinMode(sr04_2_trig,OUTPUT);
-  pinMode(sr04_2_echo,INPUT);
-  pinMode(Buzzer,OUTPUT);
-  pinMode(Fan,OUTPUT);
+// Setup function
+void setup() {
+  // Set the pin modes for the ultrasonic sensors, buzzer, fan, and LED
+  pinMode(ultraSonic_front_trig_pin, OUTPUT);
+  pinMode(ultraSonic_front_echo_pin, INPUT);
+  pinMode(ultraSonic_left_trig_pin, OUTPUT);
+  pinMode(ultraSonic_left_echo_pin, INPUT);
+  pinMode(buzzer_pin, OUTPUT);
+  pinMode(fan, OUTPUT);
   pinMode(LED, OUTPUT);
-  
+
+  // Start the serial communication
   Serial.begin(9600);
-  
 }
 
-void loop(){
+// Main loop function
+void loop() {
+  // Variables to hold sensor outputs
+  float front_ultrasonic_output = 0;
+  float left_ultrasonic_output = 0;
+  int* DHT_sensor_output;
 
-  float sonic1_out = 0;
-  float sonic2_out = 0;
-  int* dht_out;
+  // Read data from the DHT sensor
+  DHT_sensor_output = DHT_function(DHT11_signal_pin);
 
-  dht_out = DHT_Function(DHT11_signal);
-   if(dht_out[1] > 10)
-   {
-     digitalWrite(Fan, HIGH);
-   }
-
-  sonic1_out = sr04_Function(sr04_1_trig,sr04_1_echo);
-  sonic2_out = sr04_Function(sr04_2_trig,sr04_2_echo);
-  if(sonic1_out <= 15 || sonic2_out <= 15)
-  {
-    digitalWrite(Buzzer, HIGH);
-  }
-  else
-  {
-    digitalWrite(Buzzer, LOW);
+  // If the temperature is greater than 10, turn on the fan
+  if (DHT_sensor_output[1] > 10) {
+    digitalWrite(fan, HIGH);
   }
 
-  int First_LDR = LDR_Function(LDR_1);
-  int Second_LDR = LDR_Function(LDR_2);
+  // Read data from the front and left ultrasonic sensors
+  front_ultrasonic_output = ultra_sonic_function(ultraSonic_front_trig_pin,
+                                                 ultraSonic_front_echo_pin);
+  left_ultrasonic_output =
+      ultra_sonic_function(ultraSonic_left_trig_pin, ultraSonic_left_echo_pin);
 
-  if(First_LDR > 150 || Second_LDR > 150){
+  // If any of the ultrasonic sensors detect an object closer than 15 units,
+  // turn on the buzzer
+  if (front_ultrasonic_output <= 15 || left_ultrasonic_output <= 15) {
+    digitalWrite(buzzer_pin, HIGH);
+  } else {
+    digitalWrite(buzzer_pin, LOW);
+  }
+
+  // Read data from the right and left light detectors
+  int right_LDR_output = LDR_function(lightDetector_right_signal_pin);
+  int left_LDR_output = LDR_function(lightDetector_left_signal_pin);
+
+  // If any of the light detectors detect a light intensity greater than 150,
+  // turn on the LED
+  if (right_LDR_output > 150 || left_LDR_output > 150) {
     digitalWrite(LED, HIGH);
-  }
-  else{
+  } else {
     digitalWrite(LED, LOW);
   }
-  
+
+  // Print the sensor data to the serial monitor
   Serial.print("First Light Detector Sensor: ");
-  Serial.println(First_LDR);
+  Serial.println(right_LDR_output);
   Serial.println("************");
   Serial.print("Second Light Detector Sensor: ");
-  Serial.println(Second_LDR);
+  Serial.println(left_LDR_output);
   Serial.println("_____________________________");
   Serial.print("First UltraSonic Sensor Distance: ");
-  Serial.println(sonic1_out);
+  Serial.println(front_ultrasonic_output);
   Serial.println("************");
   Serial.print("Second UltraSonic Sensor Distance: ");
-  Serial.println(sonic2_out);
+  Serial.println(left_ultrasonic_output);
   Serial.println("_____________________________");
   Serial.print("DHT Sensor Temperature: ");
-  Serial.println(dht_out[1]);
+  Serial.println(DHT_sensor_output[1]);
   Serial.println("************");
   Serial.print("DHT Sensor Humidity: ");
-  Serial.println(dht_out[0]);
+  Serial.println(DHT_sensor_output[0]);
   Serial.println("_____________________________");
-  Serial.print(output);
-  
-  delay(100);
+
+  // Delay for a short period before the next loop
+  delay(50);
 }
