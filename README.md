@@ -1,5 +1,5 @@
 # Smart Farming System using Arduino
-![Smart Farming System](images/smart_farming_system.jpg)
+![Smart Farming System](https://github.com/smhamidi/AUT_Instrumentation_SmartFarming_Arduino/blob/main/pictures/Lights_OFF.jpg)
 ## Table of Contents
 
 - [Introduction](#introduction)
@@ -32,7 +32,7 @@ The Smart Farming System is a project that uses Arduino to automate and monitor 
 - Buzzer
 - Fan
 - LED
-
+![Smart Farming System](https://github.com/smhamidi/AUT_Instrumentation_SmartFarming_Arduino/blob/main/pictures/Lights_ON.jpg)
 ## Software Requirements
 
 - Arduino IDE
