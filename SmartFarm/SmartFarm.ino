@@ -26,10 +26,6 @@ int* DHT_Function ( const int DHT_pin )
   int chk = DHT.read11(DHT_pin);
   DHT_output[0] = DHT.humidity;
   DHT_output[1] = DHT.temperature;
-  Serial.print("Temperature = ");
-  Serial.println(DHT_output[1]);
-  Serial.print("Humidity = ");
-  Serial.println(DHT_output[0]);
   return DHT_output;
  
 }
@@ -44,11 +40,6 @@ float sr04_Function(int trigPin, int echoPin){
 
   duration = pulseIn(echoPin, HIGH);
   distance = (duration*.0343)/2;
-  // if(distance < 401)
-  // {
-    Serial.print("Distance: ");
-    Serial.println(distance);
-  // }
   return distance;
 }
 
@@ -78,14 +69,12 @@ void loop(){
   int* dht_out;
 
   dht_out = DHT_Function(DHT11_signal);
-   if(dht_out[1] > 35)
+   if(dht_out[1] > 10)
    {
      digitalWrite(Fan, HIGH);
    }
 
-  Serial.println("first sonic");
   sonic1_out = sr04_Function(sr04_1_trig,sr04_1_echo);
-  Serial.println("second sonic");
   sonic2_out = sr04_Function(sr04_2_trig,sr04_2_echo);
   if(sonic1_out <= 15 || sonic2_out <= 15)
   {
@@ -105,5 +94,26 @@ void loop(){
   else{
     digitalWrite(LED, LOW);
   }
-  delay(150);
+  
+  Serial.print("First Light Detector Sensor: ");
+  Serial.println(First_LDR);
+  Serial.println("************");
+  Serial.print("Second Light Detector Sensor: ");
+  Serial.println(Second_LDR);
+  Serial.println("_____________________________");
+  Serial.print("First UltraSonic Sensor Distance: ");
+  Serial.println(sonic1_out);
+  Serial.println("************");
+  Serial.print("Second UltraSonic Sensor Distance: ");
+  Serial.println(sonic2_out);
+  Serial.println("_____________________________");
+  Serial.print("DHT Sensor Temperature: ");
+  Serial.println(dht_out[1]);
+  Serial.println("************");
+  Serial.print("DHT Sensor Humidity: ");
+  Serial.println(dht_out[0]);
+  Serial.println("_____________________________");
+  Serial.print(output);
+  
+  delay(100);
 }
